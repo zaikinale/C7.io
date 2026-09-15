@@ -498,8 +498,9 @@ header h1 {
 .md-modal-window {
   position: relative;
   z-index: 9999;
-  background: rgb(24, 24, 24);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  top: 240px;
+  background: rgb(12, 12, 12);
+  /* border: 1px solid rgba(255, 255, 255, 0.15); */
   border-radius: 12px;
   width: 90%;
   max-width: 600px;
@@ -515,12 +516,18 @@ header h1 {
   to { transform: scale(1); opacity: 1; }
 }
 
-.md-modal-header {
+.md-modal-header, .md-modal-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  /* border-bottom: 1px solid rgba(255, 255, 255, 0.1); */
+}
+
+.md-modal-meta {
+  opacity: 0.5;
+  font-size: 14px;
+  padding: 0 20px;
 }
 
 .md-modal-header h3 {
@@ -544,19 +551,25 @@ header h1 {
   color: #fff;
 }
 
-.md-modal-textarea {
+.md-modal-textarea, .md-modal-input {
   flex: 1;
-  min-height: 250px;
+  /* background: rgb(12, 12, 12); */
+
   background: rgb(12, 12, 12);
   color: #e5e7eb;
   border: none;
-  padding: 16px 20px;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 0.95rem;
   line-height: 1.6;
   resize: vertical;
   outline: none;
+  resize: none;
 }
+.md-modal-textarea {
+  min-height: 250px;
+  padding: 16px 20px;
+}
+
 .md-modal-textarea::placeholder {
   color: #4b5563;
 }
@@ -565,16 +578,18 @@ header h1 {
   display: flex;
   gap: 6px;
   padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.03);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  /* background: rgba(255, 255, 255, 0.03); */
+  /* border-top: 1px solid rgba(255, 255, 255, 0.1); */
+  /* border-bottom: 1px solid rgba(255, 255, 255, 0.1); */
   flex-wrap: wrap;
 }
 
-.md-modal-toolbar button {
+.md-modal-toolbar .btn {
   background: transparent;
   color: #d1d5db;
   border: 1px solid rgba(255, 255, 255, 0.15);
+  /* background-color: rgba(255, 255, 255, 0.3); */
+  /* background: rgba(255, 255, 255, 0.1); */
   border-radius: 6px;
   padding: 6px 12px;
   font-size: 0.85rem;
@@ -582,8 +597,13 @@ header h1 {
   transition: all 0.15s;
 }
 
+.md-modal-toolbar .btn  >* {
+  width: 16px;
+  height: inherit;
+}
+
 .md-modal-toolbar button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.3);
   color: #fff;
   border-color: rgba(255, 255, 255, 0.3);
 }
@@ -592,7 +612,7 @@ header h1 {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 16px 20px;
+  /* padding: 16px 20px; */
 }
 
 .md-btn {

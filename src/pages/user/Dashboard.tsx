@@ -41,9 +41,9 @@ export default function Dashboard() {
       <header className="section">
         <h1>Dashboard</h1>
         {/* Кнопка для вызова модального окна (можно перенести в NotesList) */}
-        <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+        {/* <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
           + Новая заметка
-        </button>
+        </button> */}
       </header>
 
       <main className="section">

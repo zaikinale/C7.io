@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
+import { RiShareBoxLine } from "react-icons/ri";
+import { LuLink } from "react-icons/lu";
+import { GoShareAndroid } from "react-icons/go";
+
+
 export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
   const [content, setContent] = useState('')
   const textareaRef = useRef(null)
@@ -46,8 +51,11 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
       <div className="md-modal-backdrop" onClick={onClose} />
       <div className="md-modal-window">
         <div className="md-modal-header">
-          <h3>Новая заметка</h3>
+          <input className='md-modal-input' type='text' placeholder='Новая заметка' />
           <button className="md-modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="md-modal-meta">
+            <p>Created at: 9.09.2026</p>
         </div>
 
         <textarea
@@ -59,18 +67,23 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
         />
 
         <div className="md-modal-toolbar">
-          <button type="button" onClick={() => insertMarkdown('**', '**')} title="Жирный"><b>B</b></button>
-          <button type="button" onClick={() => insertMarkdown('*', '*')} title="Курсив"><i>I</i></button>
-          <button type="button" onClick={() => insertMarkdown('`', '`')} title="Код">&lt;/&gt;</button>
-          <button type="button" onClick={() => insertMarkdown('- ')} title="Список">•</button>
-          <button type="button" onClick={() => insertMarkdown('# ')} title="Заголовок">H1</button>
-          <button type="button" onClick={() => insertMarkdown('[', '](url)')} title="Ссылка">🔗</button>
+            <button className='btn' type="button" onClick={() => insertMarkdown('**', '**')} title="Жирный"><b>B</b></button>
+            <button className='btn' type="button" onClick={() => insertMarkdown('*', '*')} title="Курсив"><i>I</i></button>
+            <button className='btn' type="button" onClick={() => insertMarkdown('`', '`')} title="Код">&lt;/&gt;</button>
+            <button className='btn' type="button" onClick={() => insertMarkdown('- ')} title="Список">•</button>
+            <button className='btn' type="button" onClick={() => insertMarkdown('# ')} title="Заголовок">H1</button>
+            <button className='btn' type="button" onClick={() => insertMarkdown('[', '](url)')} title="Ссылка"><LuLink /></button>
+            <button className='btn' type="button" onClick={() => insertMarkdown('[', '](url)')} title="Ссылка"><RiShareBoxLine /></button>
+            <button className='btn' type="button" onClick={() => insertMarkdown('[', '](url)')} title="Ссылка"><GoShareAndroid /></button>
+            <div className="md-modal-footer">
+                <button className="md-btn md-btn-secondary" onClick={onClose}>Отмена</button>
+                <button className="md-btn md-btn-primary" onClick={handleSave}>Сохранить</button>
+            </div>
         </div>
 
-        <div className="md-modal-footer">
-          <button className="md-btn md-btn-secondary" onClick={onClose}>Отмена</button>
-          <button className="md-btn md-btn-primary" onClick={handleSave}>Сохранить</button>
-        </div>
+        {/* <div className="md-modal-footer">
+          
+        </div> */}
       </div>
     </div>,
     document.body
