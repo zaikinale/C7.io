@@ -498,7 +498,7 @@ header h1 {
 .md-modal-window {
   position: relative;
   z-index: 9999;
-  top: 240px;
+  /* top: 240px; */
   background: rgb(12, 12, 12);
   /* border: 1px solid rgba(255, 255, 255, 0.15); */
   border-radius: 12px;
@@ -575,6 +575,7 @@ header h1 {
 }
 
 .md-modal-toolbar {
+  position: relative;
   display: flex;
   gap: 6px;
   padding: 12px 20px;
@@ -639,4 +640,528 @@ header h1 {
 }
 .md-btn-primary:hover {
   background: #2563eb;
+}
+
+
+/* ═══════ MODAL TITLE & ICON ═══════ */
+.md-modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.md-modal-title-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  outline: none;
+}
+.md-modal-title-input::placeholder {
+  color: #6b7280;
+}
+
+.md-modal-icon {
+  font-size: 1.4rem;
+  color: #3b82f6;
+}
+
+.md-modal-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.md-modal-pin {
+  background: transparent;
+  color: #9ca3af;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.md-modal-pin:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.md-modal-pin.active {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* ═══════ SECTIONS ═══════ */
+.md-modal-section {
+  padding: 12px 20px;
+  /* border-top: 1px solid rgba(255, 255, 255, 0.08); */
+}
+
+.md-modal-section h4 {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* ═══════ LINKS ═══════ */
+.md-modal-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.md-modal-link-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+}
+
+.md-modal-link-item a {
+  flex: 1;
+  color: #60a5fa;
+  font-size: 0.85rem;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.md-modal-link-item a:hover {
+  text-decoration: underline;
+}
+
+.md-modal-link-item button {
+  background: transparent;
+  color: #6b7280;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.md-modal-link-item button:hover {
+  color: #f87171;
+}
+
+.md-modal-link-input-row {  
+  position: absolute;
+  top: -60px;
+  left: 0;
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px;
+  z-index: 10000;
+  opacity: 1;
+}
+
+.md-modal-link-input-row input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  outline: none;
+}
+.md-modal-link-input-row input::placeholder {
+  color: #6b7280;
+}
+
+.md-modal-link-input-row button {
+  background: rgba(255, 255, 255, 0.08);
+  color: #d1d5db;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.15s;
+}
+.md-modal-link-input-row button:hover {
+  background: #3b82f6;
+  color: #fff;
+}
+
+/* ═══════ TASKS ═══════ */
+.md-modal-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.md-modal-task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.md-modal-task-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.md-modal-task-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.md-modal-task-item span {
+  font-size: 0.85rem;
+  color: #d1d5db;
+}
+
+/* ═══════ TOOLBAR DIVIDER ═══════ */
+.md-modal-toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 4px;
+}
+
+/* ═══════ APPEARANCE (COLORS & ICONS) ═══════ */
+.md-modal-appearance {
+  background: rgb(0, 0, 0);
+  border-radius: 10px;
+  top: 80px;
+  position: absolute;
+  display: flex;
+  gap: 20px;
+  padding: 12px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex-wrap: wrap;
+}
+
+.md-modal-colors,
+.md-modal-icons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.md-modal-color-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.md-modal-color-btn:hover {
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.md-modal-color-btn.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.md-modal-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  color: #9ca3af;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.15s;
+}
+.md-modal-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.md-modal-icon-btn.active {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+/* ═══════ TASK PICKER DROPDOWN ═══════ */
+.md-modal-task-picker {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.md-modal-task-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #d1d5db;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.md-modal-task-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.md-modal-task-btn > svg {
+  width: 16px;
+  height: 16px;
+}
+
+.md-modal-task-count {
+  background: #3b82f6;
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.md-modal-task-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: rgb(20, 20, 20);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 8px;
+  min-width: 280px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: md-dropdown-appear 0.15s ease-out;
+}
+
+@keyframes md-dropdown-appear {
+  from { 
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.md-modal-selected-tasks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.md-modal-task-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.md-modal-task-tag button {
+  background: transparent;
+  color: #60a5fa;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.md-modal-task-tag button:hover {
+  opacity: 1;
+}
+
+/* ═══════ PICKER CONTAINER ═══════ */
+.md-modal-picker {
+  position: relative;
+}
+
+.md-modal-picker .btn {
+  background: transparent;
+  color: #d1d5db;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.md-modal-picker .btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ═══════ DROPDOWN (универсальный) ═══════ */
+.md-modal-dropdown {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  background: rgb(20, 20, 20);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 10px;
+  min-width: 260px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: md-dropdown-appear 0.15s ease-out;
+}
+
+@keyframes md-dropdown-appear {
+  from { 
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.md-modal-dropdown h5 {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 8px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.md-modal-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.md-modal-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.md-modal-dropdown-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.md-modal-dropdown-item span {
+  font-size: 0.85rem;
+  color: #d1d5db;
+  flex: 1;
+}
+
+.md-modal-dropdown-note-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.md-modal-dropdown-note-title {
+  font-size: 0.85rem;
+  color: #d1d5db;
+  font-weight: 500;
+}
+
+.md-modal-dropdown-note-text {
+  font-size: 0.75rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ═══════ SELECTED TAGS ═══════ */
+.md-modal-selected-tasks,
+.md-modal-selected-users,
+.md-modal-selected-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.md-modal-task-tag,
+.md-modal-user-tag,
+.md-modal-note-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  transition: all 0.15s;
+}
+
+.md-modal-task-tag {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+.md-modal-user-tag {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #a78bfa;
+}
+
+.md-modal-note-tag {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+
+.md-modal-task-tag svg,
+.md-modal-user-tag svg,
+.md-modal-note-tag svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.md-modal-task-tag button,
+.md-modal-user-tag button,
+.md-modal-note-tag button {
+  background: transparent;
+  color: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.md-modal-task-tag button:hover,
+.md-modal-user-tag button:hover,
+.md-modal-note-tag button:hover {
+  opacity: 1;
 }
