@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom' // <-- Добавлено для навигации
+import './Modal.css'
 
 import { RiShareBoxLine } from "react-icons/ri"
 import { LuLink } from "react-icons/lu"
@@ -53,6 +55,8 @@ const AVAILABLE_NOTES = [
 ]
 
 export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
+  const navigate = useNavigate() // <-- Хук навигации
+  
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [links, setLinks] = useState([])
@@ -69,11 +73,22 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
   const [isNotePickerOpen, setIsNotePickerOpen] = useState(false)
   const [isOpenLinkPanel, setIsOpenLinkPanel] = useState(false)
   
+  const [createdAt, setCreatedAt] = useState(new Date().toISOString().split('T')[0])
+  const [deadline, setDeadline] = useState('')
+  
   const textareaRef = useRef(null)
   const linkInputRef = useRef(null)
   const taskPickerRef = useRef(null)
   const userPickerRef = useRef(null)
   const notePickerRef = useRef(null)
+
+  // --- Логика прогресса задач ---
+  const totalTasks = selectedTasks.length
+  const completedTasks = selectedTasks.filter(id => {
+    const task = AVAILABLE_TASKS.find(t => t.id === id)
+    return task?.done
+  }).length
+  const taskProgressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
   useEffect(() => {
     if (isOpen && textareaRef.current) textareaRef.current.focus()
@@ -85,18 +100,11 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
     return () => window.removeEventListener('keydown', handleEsc)
   }, [isOpen, onClose])
 
-  // Закрытие dropdown при клике вне их
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (taskPickerRef.current && !taskPickerRef.current.contains(e.target)) {
-        setIsTaskPickerOpen(false)
-      }
-      if (userPickerRef.current && !userPickerRef.current.contains(e.target)) {
-        setIsUserPickerOpen(false)
-      }
-      if (notePickerRef.current && !notePickerRef.current.contains(e.target)) {
-        setIsNotePickerOpen(false)
-      }
+      if (taskPickerRef.current && !taskPickerRef.current.contains(e.target)) setIsTaskPickerOpen(false)
+      if (userPickerRef.current && !userPickerRef.current.contains(e.target)) setIsUserPickerOpen(false)
+      if (notePickerRef.current && !notePickerRef.current.contains(e.target)) setIsNotePickerOpen(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -105,12 +113,10 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
   const insertMarkdown = (prefix, suffix = prefix) => {
     const textarea = textareaRef.current
     if (!textarea) return
-    
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
     const text = content
     const newText = text.substring(0, start) + prefix + text.substring(start, end) + suffix + text.substring(end)
-    
     setContent(newText)
     setTimeout(() => {
       textarea.focus()
@@ -127,45 +133,13 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
     }
   }
 
-  const removeLink = (url) => {
-    setLinks(links.filter(l => l !== url))
-  }
-
-  const toggleTask = (taskId) => {
-    setSelectedTasks(prev => 
-      prev.includes(taskId) 
-        ? prev.filter(id => id !== taskId)
-        : [...prev, taskId]
-    )
-  }
-
-  const toggleUser = (userId) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    )
-  }
-
-  const toggleNote = (noteId) => {
-    setSelectedNotes(prev => 
-      prev.includes(noteId) 
-        ? prev.filter(id => id !== noteId)
-        : [...prev, noteId]
-    )
-  }
-
-  const removeTask = (taskId) => {
-    setSelectedTasks(prev => prev.filter(id => id !== taskId))
-  }
-
-  const removeUser = (userId) => {
-    setSelectedUsers(prev => prev.filter(id => id !== userId))
-  }
-
-  const removeNote = (noteId) => {
-    setSelectedNotes(prev => prev.filter(id => id !== noteId))
-  }
+  const removeLink = (url) => setLinks(links.filter(l => l !== url))
+  const toggleTask = (taskId) => setSelectedTasks(prev => prev.includes(taskId) ? prev.filter(id => id !== taskId) : [...prev, taskId])
+  const toggleUser = (userId) => setSelectedUsers(prev => prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId])
+  const toggleNote = (noteId) => setSelectedNotes(prev => prev.includes(noteId) ? prev.filter(id => id !== noteId) : [...prev, noteId])
+  const removeTask = (taskId) => setSelectedTasks(prev => prev.filter(id => id !== taskId))
+  const removeUser = (userId) => setSelectedUsers(prev => prev.filter(id => id !== userId))
+  const removeNote = (noteId) => setSelectedNotes(prev => prev.filter(id => id !== noteId))
 
   const handleSave = () => {
     if (content.trim() || title.trim()) {
@@ -179,7 +153,8 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
         isPinned,
         color,
         icon,
-        createdAt: new Date().toISOString(),
+        createdAt,
+        deadline: deadline || null,
       }
       onSave(noteData)
       
@@ -192,6 +167,8 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
       setIsPinned(false)
       setColor(COLORS[0].value)
       setIcon(null)
+      setCreatedAt(new Date().toISOString().split('T')[0])
+      setDeadline('')
       onClose()
     }
   }
@@ -231,33 +208,28 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
           <div className="md-modal-appearance">
             <div className="md-modal-colors">
               {COLORS.map(c => (
-                <button
-                  key={c.name}
-                  className={`md-modal-color-btn ${color === c.value ? 'active' : ''}`}
-                  style={{ backgroundColor: c.value }}
-                  onClick={() => setColor(c.value)}
-                  title={c.name}
-                />
+                <button key={c.name} className={`md-modal-color-btn ${color === c.value ? 'active' : ''}`} style={{ backgroundColor: c.value }} onClick={() => setColor(c.value)} title={c.name} />
               ))}
             </div>
-            
             <div className="md-modal-icons">
               {ICONS.map(({ name, Icon }) => (
-                <button
-                  key={name}
-                  className={`md-modal-icon-btn ${icon === name ? 'active' : ''}`}
-                  onClick={() => setIcon(icon === name ? null : name)}
-                  title={name}
-                >
-                  <Icon />
-                </button>
+                <button key={name} className={`md-modal-icon-btn ${icon === name ? 'active' : ''}`} onClick={() => setIcon(icon === name ? null : name)} title={name}><Icon /></button>
               ))}
             </div>
           </div>
         )}
 
         <div className="md-modal-meta">
-          <p>Создано: {new Date().toLocaleDateString('ru-RU')}</p>
+          <div className="md-modal-dates">
+            <label className="md-modal-date-label">
+              <span>Создано:</span>
+              <input type="date" value={createdAt} onChange={(e) => setCreatedAt(e.target.value)} className="md-modal-date-input" />
+            </label>
+            <label className="md-modal-date-label">
+              <span>Дедлайн:</span>
+              <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className={`md-modal-date-input ${deadline ? 'has-deadline' : ''}`} />
+            </label>
+          </div>
         </div>
 
         <textarea
@@ -268,7 +240,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
           onChange={(e) => setContent(e.target.value)}
         />
 
-        {/* Секция ссылок */}
         {links.length > 0 && (
           <div className="md-modal-section">
             <h4>Прикреплённые ссылки</h4>
@@ -283,78 +254,90 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
           </div>
         )}
 
-        {/* Секция прикреплённых элементов */}
-        <div className="md-modal-section">
-          {/* Выбранные задачи */}
-          {selectedTasks.length > 0 && (
+        {/* --- ЗАДАЧИ С ПРОГРЕСС-БАРОМ И НАВИГАЦИЕЙ --- */}
+        {selectedTasks.length > 0 && (
+          <div className="md-modal-section">
+            <h4>Прикреплённые задачи ({completedTasks}/{totalTasks})</h4>
+            <div className="md-modal-task-progress-bar-container">
+              <div className="md-modal-task-progress-bar-fill" style={{ width: `${taskProgressPercent}%` }}></div>
+            </div>
             <div className="md-modal-selected-tasks">
               {selectedTasks.map(taskId => {
                 const task = AVAILABLE_TASKS.find(t => t.id === taskId)
                 return (
-                  <div key={taskId} className="md-modal-task-tag">
+                  <div 
+                    key={taskId} 
+                    className={`md-modal-task-tag ${task.done ? 'is-done' : ''}`}
+                    onClick={() => navigate(`/tasks/${taskId}`)}
+                    title="Перейти к задаче"
+                  >
                     <GoShareAndroid />
                     <span>{task.text}</span>
-                    <button onClick={() => removeTask(taskId)}>×</button>
+                    <button onClick={(e) => { e.stopPropagation(); removeTask(taskId); }}>×</button>
                   </div>
                 )
               })}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Выбранные пользователи */}
-          {selectedUsers.length > 0 && (
+        {/* --- ПОЛЬЗОВАТЕЛИ С НАВИГАЦИЕЙ --- */}
+        {selectedUsers.length > 0 && (
+          <div className="md-modal-section">
+            <h4>Участники</h4>
             <div className="md-modal-selected-users">
               {selectedUsers.map(userId => {
                 const user = AVAILABLE_USERS.find(u => u.id === userId)
                 return (
-                  <div key={userId} className="md-modal-user-tag">
+                  <div 
+                    key={userId} 
+                    className="md-modal-user-tag"
+                    onClick={() => navigate(`/users/${userId}`)}
+                    title="Перейти к профилю"
+                  >
                     <FaRegUser />
                     <span>{user.name}</span>
-                    <button onClick={() => removeUser(userId)}>×</button>
+                    <button onClick={(e) => { e.stopPropagation(); removeUser(userId); }}>×</button>
                   </div>
                 )
               })}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Выбранные заметки */}
-          {selectedNotes.length > 0 && (
+        {/* --- ДРУГИЕ ЗАМЕТКИ С НАВИГАЦИЕЙ --- */}
+        {selectedNotes.length > 0 && (
+          <div className="md-modal-section">
+            <h4>Связанные заметки</h4>
             <div className="md-modal-selected-notes">
               {selectedNotes.map(noteId => {
                 const note = AVAILABLE_NOTES.find(n => n.id === noteId)
                 return (
-                  <div key={noteId} className="md-modal-note-tag">
+                  <div 
+                    key={noteId} 
+                    className="md-modal-note-tag"
+                    onClick={() => navigate(`/notes/${noteId}`)}
+                    title="Открыть заметку"
+                  >
                     <FaRegNoteSticky />
                     <span>{note.title}</span>
-                    <button onClick={() => removeNote(noteId)}>×</button>
+                    <button onClick={(e) => { e.stopPropagation(); removeNote(noteId); }}>×</button>
                   </div>
                 )
               })}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Панель инструментов */}
         <div className="md-modal-toolbar">
           <div className="md-modal-picker" ref={userPickerRef}>
-            <button 
-              className="btn" 
-              type="button" 
-              onClick={() => setIsUserPickerOpen(!isUserPickerOpen)} 
-              title="Дать доступ"
-            >
-              <FaRegUser />
-            </button>
+            <button className="btn" type="button" onClick={() => setIsUserPickerOpen(!isUserPickerOpen)} title="Дать доступ"><FaRegUser /></button>
             {isUserPickerOpen && (
               <div className="md-modal-dropdown">
                 <h5>Выберите пользователей</h5>
                 {AVAILABLE_USERS.map(user => (
                   <label key={user.id} className="md-modal-dropdown-item">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(user.id)}
-                      onChange={() => toggleUser(user.id)}
-                    />
+                    <input type="checkbox" checked={selectedUsers.includes(user.id)} onChange={() => toggleUser(user.id)} />
                     <span>{user.name}</span>
                   </label>
                 ))}
@@ -362,34 +345,16 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
             )}
           </div>
 
-          <button 
-            className="btn" 
-            type="button" 
-            onClick={() => setIsOpenLinkPanel(!isOpenLinkPanel)} 
-            title="Прикрепить ссылку"
-          >
-            <LuLink />
-          </button>
+          <button className="btn" type="button" onClick={() => setIsOpenLinkPanel(!isOpenLinkPanel)} title="Прикрепить ссылку"><LuLink /></button>
 
           <div className="md-modal-picker" ref={notePickerRef}>
-            <button 
-              className="btn" 
-              type="button" 
-              onClick={() => setIsNotePickerOpen(!isNotePickerOpen)} 
-              title="Прикрепить заметку"
-            >
-              <FaRegNoteSticky />
-            </button>
+            <button className="btn" type="button" onClick={() => setIsNotePickerOpen(!isNotePickerOpen)} title="Прикрепить заметку"><FaRegNoteSticky /></button>
             {isNotePickerOpen && (
               <div className="md-modal-dropdown">
                 <h5>Связать с заметками</h5>
                 {AVAILABLE_NOTES.map(note => (
                   <label key={note.id} className="md-modal-dropdown-item">
-                    <input
-                      type="checkbox"
-                      checked={selectedNotes.includes(note.id)}
-                      onChange={() => toggleNote(note.id)}
-                    />
+                    <input type="checkbox" checked={selectedNotes.includes(note.id)} onChange={() => toggleNote(note.id)} />
                     <div className="md-modal-dropdown-note-info">
                       <span className="md-modal-dropdown-note-title">{note.title}</span>
                       <span className="md-modal-dropdown-note-text">{note.text}</span>
@@ -401,24 +366,13 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
           </div>
 
           <div className="md-modal-picker" ref={taskPickerRef}>
-            <button 
-              className="btn" 
-              type="button" 
-              onClick={() => setIsTaskPickerOpen(!isTaskPickerOpen)} 
-              title="Прикрепить задачу"
-            >
-              <GoShareAndroid />
-            </button>
+            <button className="btn" type="button" onClick={() => setIsTaskPickerOpen(!isTaskPickerOpen)} title="Прикрепить задачу"><GoShareAndroid /></button>
             {isTaskPickerOpen && (
               <div className="md-modal-dropdown">
                 <h5>Прикрепить задачи</h5>
                 {AVAILABLE_TASKS.map(task => (
                   <label key={task.id} className="md-modal-dropdown-item">
-                    <input
-                      type="checkbox"
-                      checked={selectedTasks.includes(task.id)}
-                      onChange={() => toggleTask(task.id)}
-                    />
+                    <input type="checkbox" checked={selectedTasks.includes(task.id)} onChange={() => toggleTask(task.id)} />
                     <span>{task.text}</span>
                   </label>
                 ))}
@@ -426,30 +380,20 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
             )}
           </div>
 
-          <button className="btn" type="button" onClick={() => insertMarkdown('[', '](url)')} title="Поделиться">
-            <RiShareBoxLine />
-          </button>
-          <div className="md-modal-footer">
-          <button className="md-btn md-btn-secondary" onClick={onClose}>Отмена</button>
-          <button className="md-btn md-btn-primary" onClick={handleSave}>Сохранить</button>
-        </div>
+          <button className="btn" type="button" onClick={() => insertMarkdown('[', '](url)')} title="Поделиться"><RiShareBoxLine /></button>
         </div>
 
         {isOpenLinkPanel && (
           <div className="md-modal-link-input-row">
-            <input
-              ref={linkInputRef}
-              type="url"
-              placeholder="Добавить ссылку"
-              value={newLink}
-              onChange={(e) => setNewLink(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addLink()}
-            />
+            <input ref={linkInputRef} type="url" placeholder="Добавить ссылку" value={newLink} onChange={(e) => setNewLink(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addLink()} />
             <button onClick={addLink}><IoAddOutline /></button>
           </div>
         )}
 
-        
+        <div className="md-modal-footer">
+          <button className="md-btn md-btn-secondary" onClick={onClose}>Отмена</button>
+          <button className="md-btn md-btn-primary" onClick={handleSave}>Сохранить</button>
+        </div>
       </div>
     </div>,
     document.body
