@@ -81,12 +81,11 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
   const [isOpenLinkPanel, setIsOpenLinkPanel] = useState(false)
   const [createdAt, setCreatedAt] = useState(new Date().toISOString().split('T')[0])
   const [deadline, setDeadline] = useState('')
+  const [isDeadlineOpen, setIsDeadlineOpen] = useState(false)
   
-  // Группы
   const [groups, setGroups] = useState(INITIAL_GROUPS)
   const [selectedGroup, setSelectedGroup] = useState('')
   
-  // Модалка создания группы
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false)
   const [newGroupName, setNewGroupName] = useState('')
   const [newGroupDesc, setNewGroupDesc] = useState('')
@@ -99,6 +98,8 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
   const userPickerRef = useRef(null)
   const notePickerRef = useRef(null)
 
+  const activeGroup = groups.find(g => String(g.id) === selectedGroup)
+
   const totalTasks = selectedTasks.length
   const completedTasks = selectedTasks.filter(id => AVAILABLE_TASKS.find(t => t.id === id)?.done).length
   const taskProgressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
@@ -108,13 +109,16 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
   }, [isOpen])
 
   useEffect(() => {
-    const handleEsc = (e) => { if (e.key === 'Escape') {
-      if (isGroupModalOpen) setIsGroupModalOpen(false)
-      else onClose()
-    }}
+    const handleEsc = (e) => { 
+      if (e.key === 'Escape') {
+        if (isGroupModalOpen) setIsGroupModalOpen(false)
+        else if (isDeadlineOpen) setIsDeadlineOpen(false)
+        else onClose()
+      }
+    }
     if (isOpen) window.addEventListener('keydown', handleEsc)
     return () => window.removeEventListener('keydown', handleEsc)
-  }, [isOpen, onClose, isGroupModalOpen])
+  }, [isOpen, onClose, isGroupModalOpen, isDeadlineOpen])
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -157,7 +161,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
   const removeUser = (userId) => setSelectedUsers(prev => prev.filter(id => id !== userId))
   const removeNote = (noteId) => setSelectedNotes(prev => prev.filter(id => id !== noteId))
 
-  // Логика создания новой группы
   const handleCreateGroup = () => {
     const name = newGroupName.trim()
     if (!name) return
@@ -172,8 +175,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
     
     setGroups([...groups, newGroup])
     setSelectedGroup(String(newGroup.id))
-    
-    // Сброс формы
     setNewGroupName('')
     setNewGroupDesc('')
     setNewGroupUsers([])
@@ -210,6 +211,7 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
       setIcon(null)
       setCreatedAt(new Date().toISOString().split('T')[0])
       setDeadline('')
+      setIsDeadlineOpen(false)
       setSelectedGroup('')
       onClose()
     }
@@ -221,7 +223,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
 
   return (
     <>
-      {/* --- ОСНОВНАЯ МОДАЛКА ЗАМЕТКИ --- */}
       {createPortal(
         <div className="md-modal-overlay">
           <div className="md-modal-backdrop" onClick={onClose} />
@@ -231,10 +232,17 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
                 {SelectedIcon ? <SelectedIcon onClick={() => setIsOpenCastomize(!isOpenCastomize)} className="md-modal-icon" /> : <PiSelection onClick={() => setIsOpenCastomize(!isOpenCastomize)} className="md-modal-icon" />}
                 <input className="md-modal-title-input" type="text" placeholder="Заголовок заметки" value={title} onChange={(e) => setTitle(e.target.value)} />
               </div>
+              
+              {/* --- ШАПКА С ТЕГОМ ГРУППЫ --- */}
               <div className="md-modal-header-actions">
+                {/* Перенесённый тег группы */}
+                
                 <button className={`md-modal-pin ${isPinned ? 'active' : ''}`} onClick={() => setIsPinned(!isPinned)} title={isPinned ? 'Открепить' : 'Закрепить'}>
                   {isPinned ? <TiPinOutline /> : <TiPin />}
                 </button>
+
+                
+
                 <button className="md-modal-close" onClick={onClose}>×</button>
               </div>
             </div>
@@ -252,32 +260,19 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
                   ))}
                 </div>
                 
-                {/* --- ГРУППЫ (ТЕГИ) --- */}
                 <div className="md-modal-groups-section">
                   <div className="md-modal-groups-label">
                     <HiOutlineFolder />
                     <span>Группа</span>
                   </div>
                   <div className="md-modal-groups-tags">
-                    <button
-                      className={`md-modal-group-tag ${selectedGroup === '' ? 'active' : ''}`}
-                      onClick={() => setSelectedGroup('')}
-                    >
-                      Без группы
-                    </button>
+                    <button className={`md-modal-group-tag ${selectedGroup === '' ? 'active' : ''}`} onClick={() => setSelectedGroup('')}>Без группы</button>
                     {groups.map(g => (
-                      <button
-                        key={g.id}
-                        className={`md-modal-group-tag ${selectedGroup === String(g.id) ? 'active' : ''}`}
-                        onClick={() => setSelectedGroup(String(g.id))}
-                      >
-                        {g.name}
+                      <button key={g.id} className={`md-modal-group-tag ${selectedGroup === String(g.id) ? 'active' : ''}`} onClick={() => setSelectedGroup(String(g.id))}>
+                        <HiOutlineFolder />{g.name}
                       </button>
                     ))}
-                    <button 
-                      className="md-modal-group-tag md-modal-group-tag-add"
-                      onClick={() => setIsGroupModalOpen(true)}
-                    >
+                    <button className="md-modal-group-tag md-modal-group-tag-add" onClick={() => setIsGroupModalOpen(true)}>
                       <HiOutlinePlus /> Новая группа
                     </button>
                   </div>
@@ -287,14 +282,49 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
 
             <div className="md-modal-meta">
               <div className="md-modal-dates">
+                {activeGroup && (
+                  <div className="md-modal-header-group-tag" onClick={() => setIsOpenCastomize(true)} title="Изменить группу">
+                    <HiOutlineFolder />
+                    <span>{activeGroup.name}</span>
+                    <button className="md-modal-header-group-clear" onClick={(e) => { e.stopPropagation(); setSelectedGroup(''); }} title="Убрать группу">×</button>
+                  </div>
+                )}
                 <label className="md-modal-date-label">
-                  <span>Создано:</span>
                   <input type="date" value={createdAt} onChange={(e) => setCreatedAt(e.target.value)} className="md-modal-date-input" />
                 </label>
-                <label className="md-modal-date-label">
-                  <span>Дедлайн:</span>
-                  <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className={`md-modal-date-input ${deadline ? 'has-deadline' : ''}`} />
-                </label>
+                
+                <div className="md-modal-date-label md-modal-deadline-container">
+                  {isDeadlineOpen ? (
+                    <div className="md-modal-deadline-edit">
+                      <input 
+                        type="date" 
+                        value={deadline} 
+                        onChange={(e) => setDeadline(e.target.value)} 
+                        className={`md-modal-date-input ${deadline ? 'has-deadline' : ''}`}
+                        autoFocus
+                      />
+                      <button className="md-modal-date-toggle-btn" onClick={() => setIsDeadlineOpen(false)} title="Скрыть">×</button>
+                    </div>
+                  ) : (
+                    <div 
+                      className={`md-modal-deadline-view ${deadline ? 'has-deadline' : ''}`} 
+                      onClick={() => setIsDeadlineOpen(true)}
+                      title={deadline ? "Изменить дедлайн" : "Добавить дедлайн"}
+                    >
+                      {deadline ? (
+                        <>
+                          <span className="md-modal-deadline-text">{new Date(deadline).toLocaleDateString('ru-RU')}</span>
+                          <button className="md-modal-date-clear-btn" onClick={(e) => { e.stopPropagation(); setDeadline(''); }} title="Удалить дедлайн">×</button>
+                        </>
+                      ) : (
+                        <>
+                          <IoAddOutline className="md-modal-deadline-icon" />
+                          <span>Дедлайн</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -377,7 +407,9 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
               </div>
             )}
 
+            {/* --- ПАНЕЛЬ ИНСТРУМЕНТОВ (тег группы отсюда убран) --- */}
             <div className="md-modal-toolbar">
+                <div className="md-modal-block">
               <div className="md-modal-picker" ref={userPickerRef}>
                 <button className="btn" type="button" onClick={() => setIsUserPickerOpen(!isUserPickerOpen)} title="Дать доступ"><FaRegUser /></button>
                 {isUserPickerOpen && (
@@ -429,6 +461,12 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
               </div>
 
               <button className="btn" type="button" onClick={() => insertMarkdown('[', '](url)')} title="Поделиться"><RiShareBoxLine /></button>
+
+                </div>
+              <div className="md-modal-block">
+              <button className="md-btn md-btn-secondary" onClick={onClose}>Отмена</button>
+              <button className="md-btn md-btn-primary" onClick={handleSave}>Сохранить</button>
+            </div>
             </div>
 
             {isOpenLinkPanel && (
@@ -437,11 +475,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
                 <button onClick={addLink}><IoAddOutline /></button>
               </div>
             )}
-
-            <div className="md-modal-footer">
-              <button className="md-btn md-btn-secondary" onClick={onClose}>Отмена</button>
-              <button className="md-btn md-btn-primary" onClick={handleSave}>Сохранить</button>
-            </div>
           </div>
         </div>,
         document.body
@@ -459,24 +492,12 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
 
             <div className="md-modal-section">
               <label className="md-modal-form-label">Название группы *</label>
-              <input 
-                type="text" 
-                className="md-modal-form-input" 
-                placeholder="Например: Маркетинг"
-                value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
-              />
+              <input type="text" className="md-modal-form-input" placeholder="Например: Маркетинг" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)} />
             </div>
 
             <div className="md-modal-section">
               <label className="md-modal-form-label">Описание</label>
-              <textarea 
-                className="md-modal-form-textarea" 
-                placeholder="Краткое описание цели группы..."
-                value={newGroupDesc}
-                onChange={(e) => setNewGroupDesc(e.target.value)}
-                rows={3}
-              />
+              <textarea className="md-modal-form-textarea" placeholder="Краткое описание цели группы..." value={newGroupDesc} onChange={(e) => setNewGroupDesc(e.target.value)} rows={3} />
             </div>
 
             <div className="md-modal-section">
@@ -484,11 +505,7 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
               <div className="md-modal-group-checkboxes">
                 {AVAILABLE_USERS.map(user => (
                   <label key={user.id} className="md-modal-dropdown-item">
-                    <input 
-                      type="checkbox" 
-                      checked={newGroupUsers.includes(user.id)} 
-                      onChange={() => setNewGroupUsers(prev => prev.includes(user.id) ? prev.filter(id => id !== user.id) : [...prev, user.id])} 
-                    />
+                    <input type="checkbox" checked={newGroupUsers.includes(user.id)} onChange={() => setNewGroupUsers(prev => prev.includes(user.id) ? prev.filter(id => id !== user.id) : [...prev, user.id])} />
                     <span>{user.name}</span>
                   </label>
                 ))}
@@ -500,11 +517,7 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
               <div className="md-modal-group-checkboxes">
                 {AVAILABLE_NOTES.map(note => (
                   <label key={note.id} className="md-modal-dropdown-item">
-                    <input 
-                      type="checkbox" 
-                      checked={newGroupNotes.includes(note.id)} 
-                      onChange={() => setNewGroupNotes(prev => prev.includes(note.id) ? prev.filter(id => id !== note.id) : [...prev, note.id])} 
-                    />
+                    <input type="checkbox" checked={newGroupNotes.includes(note.id)} onChange={() => setNewGroupNotes(prev => prev.includes(note.id) ? prev.filter(id => id !== note.id) : [...prev, note.id])} />
                     <span>{note.title}</span>
                   </label>
                 ))}
@@ -514,7 +527,7 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
             <div className="md-modal-footer">
               <button className="md-btn md-btn-secondary" onClick={() => setIsGroupModalOpen(false)}>Отмена</button>
               <button className="md-btn md-btn-primary" onClick={handleCreateGroup} disabled={!newGroupName.trim()}>Создать группу</button>
-            </div>
+            </div> 
           </div>
         </div>,
         document.body
