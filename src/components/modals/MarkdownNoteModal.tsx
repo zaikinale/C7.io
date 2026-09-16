@@ -228,22 +228,38 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
           <div className="md-modal-backdrop" onClick={onClose} />
           <div className="md-modal-window" style={{ backgroundColor: color }}>
             <div className="md-modal-header">
+                
               <div className="md-modal-title-row">
                 {SelectedIcon ? <SelectedIcon onClick={() => setIsOpenCastomize(!isOpenCastomize)} className="md-modal-icon" /> : <PiSelection onClick={() => setIsOpenCastomize(!isOpenCastomize)} className="md-modal-icon" />}
                 <input className="md-modal-title-input" type="text" placeholder="Заголовок заметки" value={title} onChange={(e) => setTitle(e.target.value)} />
               </div>
               
               {/* --- ШАПКА С ТЕГОМ ГРУППЫ --- */}
-              <div className="md-modal-header-actions">
+              <div className="md-modal-header-actions md-modal-header-group">
                 {/* Перенесённый тег группы */}
+                  <div className="md-modal-header-group-tag" onClick={() => setIsOpenCastomize(true)} title="Изменить группу">
+
+                {activeGroup && (
+                  <>
+                  <HiOutlineFolder />
+                    <span>{activeGroup.name}</span>
+                    <button className="md-modal-header-group-clear" onClick={(e) => { e.stopPropagation(); setSelectedGroup(''); }} title="Убрать группу">×</button>
+                  
+                  </>
+                    
+                )}
+
+                </div>
                 
-                <button className={`md-modal-pin ${isPinned ? 'active' : ''}`} onClick={() => setIsPinned(!isPinned)} title={isPinned ? 'Открепить' : 'Закрепить'}>
-                  {isPinned ? <TiPinOutline /> : <TiPin />}
-                </button>
+                <div className="md-modal-block">
+                  <button className={`md-modal-pin ${isPinned ? 'active' : ''}`} onClick={() => setIsPinned(!isPinned)} title={isPinned ? 'Открепить' : 'Закрепить'}>
+                    {isPinned ? <TiPinOutline /> : <TiPin />}
+                  </button>
 
                 
 
-                <button className="md-modal-close" onClick={onClose}>×</button>
+                  <button className="md-modal-close " onClick={onClose}>×</button>
+                </div>
               </div>
             </div>
             
@@ -261,10 +277,9 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
                 </div>
                 
                 <div className="md-modal-groups-section">
-                  <div className="md-modal-groups-label">
+                  {/* <div className="md-modal-groups-label">
                     <HiOutlineFolder />
-                    <span>Группа</span>
-                  </div>
+                  </div> */}
                   <div className="md-modal-groups-tags">
                     <button className={`md-modal-group-tag ${selectedGroup === '' ? 'active' : ''}`} onClick={() => setSelectedGroup('')}>Без группы</button>
                     {groups.map(g => (
@@ -282,13 +297,7 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
 
             <div className="md-modal-meta">
               <div className="md-modal-dates">
-                {activeGroup && (
-                  <div className="md-modal-header-group-tag" onClick={() => setIsOpenCastomize(true)} title="Изменить группу">
-                    <HiOutlineFolder />
-                    <span>{activeGroup.name}</span>
-                    <button className="md-modal-header-group-clear" onClick={(e) => { e.stopPropagation(); setSelectedGroup(''); }} title="Убрать группу">×</button>
-                  </div>
-                )}
+                
                 <label className="md-modal-date-label">
                   <input type="date" value={createdAt} onChange={(e) => setCreatedAt(e.target.value)} className="md-modal-date-input" />
                 </label>

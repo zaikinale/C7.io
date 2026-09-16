@@ -52,9 +52,9 @@
   padding: 0 20px 12px; /* Объединено с нижним дубликатом */
 }
 
-.md-modal-header-actions { display: flex; gap: 8px; }
+.md-modal-header-actions { width: 100%; display: flex; justify-content: space-between; gap: 8px; }
 
-.md-modal-close, .md-modal-pin {
+.md-modal-close, .md-modal-pin, .md-modal-header-group-tag {
   background: transparent;
   color: #9ca3af;
   font-size: 1.2rem; /* Унифицировано для компактности */
@@ -64,7 +64,7 @@
   transition: all 0.15s;
 }
 .md-modal-close { font-size: 1.8rem; line-height: 1; padding: 0 4px; }
-.md-modal-close:hover, .md-modal-pin:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.md-modal-close:hover, .md-modal-pin:hover, .header-group-tag:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
 .md-modal-pin.active { color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
 
 .md-modal-title-row { display: flex; align-items: center; gap: 10px; flex: 1; }
@@ -98,7 +98,8 @@
 /* ═══════ TOOLBAR & BUTTONS ═══════ */
 .md-modal-toolbar {
   position: relative;
-  display: flex;
+  display: flex;  
+  justify-content: flex-end;
   gap: 12px;
   padding: 12px 20px;
   flex-wrap: wrap;
@@ -159,7 +160,7 @@
 .md-modal-link-item button:hover { color: #f87171; }
 
 .md-modal-link-input-row {
-  position: absolute; bottom: 100px; left: 0; display: flex; gap: 8px;
+  position: absolute; bottom: -60px; left: 0; display: flex; gap: 8px;
   padding: 12px 20px; z-index: 10000; width: 100%; box-sizing: border-box;
 }
 .md-modal-link-input-row input {
@@ -703,7 +704,16 @@
 }
 
 /* ═══════ ТЕГ ГРУППЫ В ШАПКЕ (рядом с кнопкой закрытия) ═══════ */
+.md-modal-header-group {
+  display: flex;
+  gap: 20px;
+  position: absolute;
+  top: -40px;
+  right: 0;
+}
 .md-modal-header-group-tag {
+    /* position: absolute;
+    top: -30px; */
   display: flex;
   align-items: center;
   gap: 8px;
