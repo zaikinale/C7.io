@@ -10,7 +10,8 @@ import { PiSelection } from "react-icons/pi"
 import { IoAddOutline } from "react-icons/io5"
 import { FaRegNoteSticky, FaRegUser } from "react-icons/fa6"
 import { GoShareAndroid } from "react-icons/go"
-import { HiOutlineFolder, HiOutlinePlus } from "react-icons/hi2"
+// ИСПРАВЛЕНО: HiOutlineMenu заменён на HiBars3
+import { HiOutlineFolder, HiOutlinePlus, HiBars3 } from "react-icons/hi2" 
 import { IoStar, IoHeart, IoBookmark, IoFlash, IoRocket, IoCode, IoBriefcase, IoSchool, IoFitness, IoMusicalNotes } from "react-icons/io5"
 
 const COLORS = [
@@ -92,6 +93,10 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
   const [newGroupUsers, setNewGroupUsers] = useState([])
   const [newGroupNotes, setNewGroupNotes] = useState([])
 
+  // --- Drag & Drop State ---
+  const [draggedTaskId, setDraggedTaskId] = useState(null)
+  const isDraggingRef = useRef(false) // Защита от случайного клика после перетаскивания
+
   const textareaRef = useRef(null)
   const linkInputRef = useRef(null)
   const taskPickerRef = useRef(null)
@@ -161,6 +166,52 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
   const removeUser = (userId) => setSelectedUsers(prev => prev.filter(id => id !== userId))
   const removeNote = (noteId) => setSelectedNotes(prev => prev.filter(id => id !== noteId))
 
+  // --- Drag & Drop Handlers ---
+  const handleDragStart = (e, taskId) => {
+    isDraggingRef.current = true
+    setDraggedTaskId(taskId)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', taskId)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault() // Обязательно для разрешения drop
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (e, targetTaskId) => {
+    e.preventDefault()
+    if (!draggedTaskId || draggedTaskId === targetTaskId) return
+
+    setSelectedTasks(prev => {
+      const newTasks = [...prev]
+      const dragIndex = newTasks.indexOf(draggedTaskId)
+      const dropIndex = newTasks.indexOf(targetTaskId)
+
+      // Удаляем из старой позиции и вставляем в новую
+      const [removed] = newTasks.splice(dragIndex, 1)
+      newTasks.splice(dropIndex, 0, removed)
+
+      return newTasks
+    })
+    setDraggedTaskId(null)
+  }
+
+  const handleDragEnd = () => {
+    isDraggingRef.current = false
+    setDraggedTaskId(null)
+  }
+
+  const handleTaskClick = (e, taskId) => {
+    // Если это был drag, а не клик, игнорируем переход
+    if (isDraggingRef.current) {
+      e.preventDefault()
+      return
+    }
+    navigate(`/tasks/${taskId}`)
+  }
+  // -------------------------
+
   const handleCreateGroup = () => {
     const name = newGroupName.trim()
     if (!name) return
@@ -188,7 +239,7 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
         title: title.trim(),
         content: content.trim(),
         links,
-        tasks: selectedTasks,
+        tasks: selectedTasks, // Порядок здесь теперь сохраняется!
         users: selectedUsers,
         notes: selectedNotes,
         isPinned,
@@ -234,31 +285,22 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
                 <input className="md-modal-title-input" type="text" placeholder="Заголовок заметки" value={title} onChange={(e) => setTitle(e.target.value)} />
               </div>
               
-              {/* --- ШАПКА С ТЕГОМ ГРУППЫ --- */}
               <div className="md-modal-header-actions md-modal-header-group">
-                {/* Перенесённый тег группы */}
-                  <div className="md-modal-header-group-tag" onClick={() => setIsOpenCastomize(true)} title="Изменить группу">
-
-                {activeGroup && (
-                  <>
-                  <HiOutlineFolder />
-                    <span>{activeGroup.name}</span>
-                    <button className="md-modal-header-group-clear" onClick={(e) => { e.stopPropagation(); setSelectedGroup(''); }} title="Убрать группу">×</button>
-                  
-                  </>
-                    
-                )}
-
+                <div className="md-modal-header-group-tag" onClick={() => setIsOpenCastomize(true)} title="Изменить группу">
+                  {activeGroup && (
+                    <>
+                      <HiOutlineFolder />
+                      <span>{activeGroup.name}</span>
+                      <button className="md-modal-header-group-clear" onClick={(e) => { e.stopPropagation(); setSelectedGroup(''); }} title="Убрать группу">×</button>
+                    </>
+                  )}
                 </div>
                 
                 <div className="md-modal-block">
                   <button className={`md-modal-pin ${isPinned ? 'active' : ''}`} onClick={() => setIsPinned(!isPinned)} title={isPinned ? 'Открепить' : 'Закрепить'}>
                     {isPinned ? <TiPinOutline /> : <TiPin />}
                   </button>
-
-                
-
-                  <button className="md-modal-close " onClick={onClose}>×</button>
+                  <button className="md-modal-close" onClick={onClose}>×</button>
                 </div>
               </div>
             </div>
@@ -277,9 +319,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
                 </div>
                 
                 <div className="md-modal-groups-section">
-                  {/* <div className="md-modal-groups-label">
-                    <HiOutlineFolder />
-                  </div> */}
                   <div className="md-modal-groups-tags">
                     <button className={`md-modal-group-tag ${selectedGroup === '' ? 'active' : ''}`} onClick={() => setSelectedGroup('')}>Без группы</button>
                     {groups.map(g => (
@@ -297,7 +336,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
 
             <div className="md-modal-meta">
               <div className="md-modal-dates">
-                
                 <label className="md-modal-date-label">
                   <input type="date" value={createdAt} onChange={(e) => setCreatedAt(e.target.value)} className="md-modal-date-input" />
                 </label>
@@ -369,7 +407,19 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
                   {selectedTasks.map(taskId => {
                     const task = AVAILABLE_TASKS.find(t => t.id === taskId)
                     return (
-                      <div key={taskId} className={`md-modal-task-tag ${task.done ? 'is-done' : ''}`} onClick={() => navigate(`/tasks/${taskId}`)} title="Перейти к задаче">
+                      <div 
+                        key={taskId} 
+                        className={`md-modal-task-tag ${task.done ? 'is-done' : ''} ${draggedTaskId === taskId ? 'dragging' : ''}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, taskId)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, taskId)}
+                        onDragEnd={handleDragEnd}
+                        onClick={(e) => handleTaskClick(e, taskId)}
+                        title="Перетащите для изменения порядка или кликните для перехода"
+                      >
+                        {/* ИСПРАВЛЕНО: HiBars3 вместо HiOutlineMenu */}
+                        <HiBars3 className="drag-handle" title="Перетащить" />
                         <GoShareAndroid />
                         <span>{task.text}</span>
                         <button onClick={(e) => { e.stopPropagation(); removeTask(taskId); }}>×</button>
@@ -416,66 +466,64 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
               </div>
             )}
 
-            {/* --- ПАНЕЛЬ ИНСТРУМЕНТОВ (тег группы отсюда убран) --- */}
             <div className="md-modal-toolbar">
                 <div className="md-modal-block">
-              <div className="md-modal-picker" ref={userPickerRef}>
-                <button className="btn" type="button" onClick={() => setIsUserPickerOpen(!isUserPickerOpen)} title="Дать доступ"><FaRegUser /></button>
-                {isUserPickerOpen && (
-                  <div className="md-modal-dropdown">
-                    <h5>Выберите пользователей</h5>
-                    {AVAILABLE_USERS.map(user => (
-                      <label key={user.id} className="md-modal-dropdown-item">
-                        <input type="checkbox" checked={selectedUsers.includes(user.id)} onChange={() => toggleUser(user.id)} />
-                        <span>{user.name}</span>
-                      </label>
-                    ))}
+                  <div className="md-modal-picker" ref={userPickerRef}>
+                    <button className="btn" type="button" onClick={() => setIsUserPickerOpen(!isUserPickerOpen)} title="Дать доступ"><FaRegUser /></button>
+                    {isUserPickerOpen && (
+                      <div className="md-modal-dropdown">
+                        <h5>Выберите пользователей</h5>
+                        {AVAILABLE_USERS.map(user => (
+                          <label key={user.id} className="md-modal-dropdown-item">
+                            <input type="checkbox" checked={selectedUsers.includes(user.id)} onChange={() => toggleUser(user.id)} />
+                            <span>{user.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <button className="btn" type="button" onClick={() => setIsOpenLinkPanel(!isOpenLinkPanel)} title="Прикрепить ссылку"><LuLink /></button>
+                  <button className="btn" type="button" onClick={() => setIsOpenLinkPanel(!isOpenLinkPanel)} title="Прикрепить ссылку"><LuLink /></button>
 
-              <div className="md-modal-picker" ref={notePickerRef}>
-                <button className="btn" type="button" onClick={() => setIsNotePickerOpen(!isNotePickerOpen)} title="Прикрепить заметку"><FaRegNoteSticky /></button>
-                {isNotePickerOpen && (
-                  <div className="md-modal-dropdown">
-                    <h5>Связать с заметками</h5>
-                    {AVAILABLE_NOTES.map(note => (
-                      <label key={note.id} className="md-modal-dropdown-item">
-                        <input type="checkbox" checked={selectedNotes.includes(note.id)} onChange={() => toggleNote(note.id)} />
-                        <div className="md-modal-dropdown-note-info">
-                          <span className="md-modal-dropdown-note-title">{note.title}</span>
-                          <span className="md-modal-dropdown-note-text">{note.text}</span>
-                        </div>
-                      </label>
-                    ))}
+                  <div className="md-modal-picker" ref={notePickerRef}>
+                    <button className="btn" type="button" onClick={() => setIsNotePickerOpen(!isNotePickerOpen)} title="Прикрепить заметку"><FaRegNoteSticky /></button>
+                    {isNotePickerOpen && (
+                      <div className="md-modal-dropdown">
+                        <h5>Связать с заметками</h5>
+                        {AVAILABLE_NOTES.map(note => (
+                          <label key={note.id} className="md-modal-dropdown-item">
+                            <input type="checkbox" checked={selectedNotes.includes(note.id)} onChange={() => toggleNote(note.id)} />
+                            <div className="md-modal-dropdown-note-info">
+                              <span className="md-modal-dropdown-note-title">{note.title}</span>
+                              <span className="md-modal-dropdown-note-text">{note.text}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <div className="md-modal-picker" ref={taskPickerRef}>
-                <button className="btn" type="button" onClick={() => setIsTaskPickerOpen(!isTaskPickerOpen)} title="Прикрепить задачу"><GoShareAndroid /></button>
-                {isTaskPickerOpen && (
-                  <div className="md-modal-dropdown">
-                    <h5>Прикрепить задачи</h5>
-                    {AVAILABLE_TASKS.map(task => (
-                      <label key={task.id} className="md-modal-dropdown-item">
-                        <input type="checkbox" checked={selectedTasks.includes(task.id)} onChange={() => toggleTask(task.id)} />
-                        <span>{task.text}</span>
-                      </label>
-                    ))}
+                  <div className="md-modal-picker" ref={taskPickerRef}>
+                    <button className="btn" type="button" onClick={() => setIsTaskPickerOpen(!isTaskPickerOpen)} title="Прикрепить задачу"><GoShareAndroid /></button>
+                    {isTaskPickerOpen && (
+                      <div className="md-modal-dropdown">
+                        <h5>Прикрепить задачи</h5>
+                        {AVAILABLE_TASKS.map(task => (
+                          <label key={task.id} className="md-modal-dropdown-item">
+                            <input type="checkbox" checked={selectedTasks.includes(task.id)} onChange={() => toggleTask(task.id)} />
+                            <span>{task.text}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <button className="btn" type="button" onClick={() => insertMarkdown('[', '](url)')} title="Поделиться"><RiShareBoxLine /></button>
-
+                  <button className="btn" type="button" onClick={() => insertMarkdown('[', '](url)')} title="Поделиться"><RiShareBoxLine /></button>
                 </div>
               <div className="md-modal-block">
-              <button className="md-btn md-btn-secondary" onClick={onClose}>Отмена</button>
-              <button className="md-btn md-btn-primary" onClick={handleSave}>Сохранить</button>
-            </div>
+                <button className="md-btn md-btn-secondary" onClick={onClose}>Отмена</button>
+                <button className="md-btn md-btn-primary" onClick={handleSave}>Сохранить</button>
+              </div>
             </div>
 
             {isOpenLinkPanel && (
