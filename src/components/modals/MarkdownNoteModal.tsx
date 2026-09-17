@@ -6,18 +6,22 @@ import './Modal.css'
 import { PiSelection } from "react-icons/pi"
 import { TiPin, TiPinOutline } from "react-icons/ti"
 import { HiOutlineFolder, HiOutlinePlus } from "react-icons/hi2"
-import { FaRegUser, FaRegNoteSticky } from "react-icons/fa6" // <-- Добавили иконки обратно
+import { FaRegUser, FaRegNoteSticky } from "react-icons/fa6"
+import { GoShareAndroid } from "react-icons/go"
+import { LuLink } from "react-icons/lu"
+import { RiShareBoxLine } from "react-icons/ri"
+import { IoAddOutline } from "react-icons/io5"
 
-import { COLORS, ICONS, INITIAL_GROUPS, AVAILABLE_USERS, AVAILABLE_NOTES } from '../../data/mockData'
+import { COLORS, ICONS, INITIAL_GROUPS, AVAILABLE_USERS, AVAILABLE_NOTES, AVAILABLE_TASKS } from '../../data/mockData'
 import GroupCreationModal from './GroupCreationModal'
 import AttachedTasks from './AttachedTasks'
 import AttachedSimpleList from './AttachedSimpleList'
 import ModalToolbar from './ModalToolbar'
 
-export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
+// ✅ 1. ДОБАВЛЯЕМ initialData В ПРОПСЫ
+export default function MarkdownNoteModal({ isOpen, onClose, onSave, initialData = null }) {
   const navigate = useNavigate()
   
-  // --- Состояние ---
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [links, setLinks] = useState([])
@@ -32,8 +36,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
   const [createdAt, setCreatedAt] = useState(new Date().toISOString().split('T')[0])
   const [deadline, setDeadline] = useState('')
   const [isDeadlineOpen, setIsDeadlineOpen] = useState(false)
-  
-  // ✅ Добавили отдельное состояние для панели ссылок
   const [isOpenLinkPanel, setIsOpenLinkPanel] = useState(false)
   
   const [groups, setGroups] = useState(INITIAL_GROUPS)
@@ -45,7 +47,39 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
 
   const activeGroup = groups.find(g => String(g.id) === selectedGroup)
 
-  // --- Эффекты ---
+  // ✅ 2. ЭФФЕКТ ДЛЯ ЗАПОЛНЕНИЯ ИЛИ СБРОСА ФОРМЫ
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setTitle(initialData.title || '')
+        setContent(initialData.content || '')
+        setLinks(initialData.links || [])
+        setSelectedTasks(initialData.tasks || [])
+        setSelectedUsers(initialData.users || [])
+        setSelectedNotes(initialData.notes || [])
+        setIsPinned(initialData.isPinned || false)
+        setColor(initialData.color || COLORS[0].value)
+        setIcon(initialData.icon || null)
+        setCreatedAt(initialData.createdAt ? initialData.createdAt.split('T')[0] : new Date().toISOString().split('T')[0])
+        setDeadline(initialData.deadline || '')
+        setSelectedGroup(initialData.group || '')
+      } else {
+        setTitle('')
+        setContent('')
+        setLinks([])
+        setSelectedTasks([])
+        setSelectedUsers([])
+        setSelectedNotes([])
+        setIsPinned(false)
+        setColor(COLORS[0].value)
+        setIcon(null)
+        setCreatedAt(new Date().toISOString().split('T')[0])
+        setDeadline('')
+        setSelectedGroup('')
+      }
+    }
+  }, [isOpen, initialData])
+
   useEffect(() => {
     if (isOpen && textareaRef.current) textareaRef.current.focus()
   }, [isOpen])
@@ -55,7 +89,7 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
       if (e.key === 'Escape') {
         if (isGroupModalOpen) setIsGroupModalOpen(false)
         else if (isDeadlineOpen) setIsDeadlineOpen(false)
-        else if (isOpenLinkPanel) setIsOpenLinkPanel(false) // ✅ Закрываем панель ссылок по Esc
+        else if (isOpenLinkPanel) setIsOpenLinkPanel(false)
         else onClose()
       }
     }
@@ -63,7 +97,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
     return () => window.removeEventListener('keydown', handleEsc)
   }, [isOpen, onClose, isGroupModalOpen, isDeadlineOpen, isOpenLinkPanel])
 
-  // --- Хендлеры ---
   const insertMarkdown = (prefix, suffix = prefix) => {
     const textarea = textareaRef.current
     if (!textarea) return
@@ -83,7 +116,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
     if (url && !links.includes(url)) {
       setLinks([...links, url])
       setNewLink('')
-      // Не закрываем панель сразу, чтобы можно было добавить несколько ссылок подряд
       linkInputRef.current?.focus()
     }
   }
@@ -117,11 +149,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
         isPinned, color, icon, createdAt,
         deadline: deadline || null, group: selectedGroup || null,
       })
-      // Сброс
-      setTitle(''); setContent(''); setLinks([]); setSelectedTasks([])
-      setSelectedUsers([]); setSelectedNotes([]); setIsPinned(false)
-      setColor(COLORS[0].value); setIcon(null); setCreatedAt(new Date().toISOString().split('T')[0])
-      setDeadline(''); setIsDeadlineOpen(false); setIsOpenLinkPanel(false); setSelectedGroup('')
       onClose()
     }
   }
@@ -135,8 +162,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
         <div className="md-modal-overlay">
           <div className="md-modal-backdrop" onClick={onClose} />
           <div className="md-modal-window" style={{ backgroundColor: color }}>
-            
-            {/* HEADER */}
             <div className="md-modal-header">
               <div className="md-modal-title-row">
                 {SelectedIcon ? <SelectedIcon onClick={() => setIsOpenCastomize(!isOpenCastomize)} className="md-modal-icon" /> : <PiSelection onClick={() => setIsOpenCastomize(!isOpenCastomize)} className="md-modal-icon" />}
@@ -161,7 +186,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
               </div>
             </div>
             
-            {/* CUSTOMIZATION PANEL */}
             {isOpenCastomize && (
               <div className="md-modal-appearance">
                 <div className="md-modal-colors">
@@ -190,7 +214,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
               </div>
             )}
 
-            {/* META & CONTENT */}
             <div className="md-modal-meta">
               <div className="md-modal-dates">
                 <label className="md-modal-date-label">
@@ -218,7 +241,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
 
             <textarea ref={textareaRef} className="md-modal-textarea" placeholder="Введите текст..." value={content} onChange={(e) => setContent(e.target.value)} />
 
-            {/* ATTACHED ITEMS */}
             {links.length > 0 && (
               <div className="md-modal-section">
                 <h4>Прикреплённые ссылки</h4>
@@ -247,7 +269,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
               renderLabel={(id) => { const n = AVAILABLE_NOTES.find(x => x.id === id); return n?.title; }}
             />
 
-            {/* TOOLBAR */}
             <ModalToolbar 
               onToggleUser={toggleItem(setSelectedUsers)}
               onToggleNote={toggleItem(setSelectedNotes)}
@@ -258,7 +279,6 @@ export default function MarkdownNoteModal({ isOpen, onClose, onSave }) {
               newLink={newLink} setNewLink={setNewLink} onAddLink={addLink} linkInputRef={linkInputRef}
               onInsertMarkdown={insertMarkdown} onClose={onClose} onSave={handleSave}
             />
-            
           </div>
         </div>,
         document.body
